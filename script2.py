@@ -3,6 +3,7 @@ import netifaces
 import socket
 import os
 import subprocess
+import tarfile
 def ip_valida(ip):
     try:
         socket.inet_aton(ip)
@@ -13,7 +14,7 @@ def ip_activa(ip):
     if(ip_valida(ip)== True):
         p = subprocess.Popen(['ping', '-n', '2', '-w', '2', ip])
         p.wait()
-        return 1 if p.poll()==0 else 1
+        return 1 if p.poll()==0 else 0
     else:
         return 0
 def obtenerClaseIP(ip):
@@ -38,6 +39,8 @@ def aproximarMascara(claseIP):
 		return 'Unknown'
 ip_func = []
 masc_func = []
+ip_nofunc = []
+masc_nofunc = []
 i=0
 for iface in netifaces.interfaces():
     if iface == 'lo' or iface.startswith('vbox'):
@@ -52,8 +55,36 @@ for iface in netifaces.interfaces():
                         print("IP activa", direccion_ip)
                         ip_func+= str(direccion_ip)
                         masc_func += aproximarMascara(obtenerClaseIP(direccion_ip))
+                    else:
+                        print("IP no activa", direccion_ip)
+                        ip_nofunc+= str(direccion_ip)
+                        masc_nofunc += aproximarMascara(obtenerClaseIP(direccion_ip))
+file = open("creado.txt", "w")
+file.write("Ip: " + str(ip_func ) + os.linesep)
+file.write("Mascaras:" + str(masc_func) + os.linesep)
+file.write("Ip no activa:" + str(ip_nofunc) + os.linesep)
+file.write("Mascaras: " + str(masc_nofunc))
+file.close()
+#Haciendo el archivo tar
 
-
-
-
-
+with tarfile.open('Direcciones.tar', mode='w') as out:
+    out.add('creado.txt')
+print("Enviando el archivo")
+from socket import socket
+s = socket()
+s.connect(("localhost", 8000))
+while True:
+    f = open("Direcciones.tar", "rb")
+    content = f.read(1024)
+        
+    while content:
+        s.send(content)
+        content = f.read(1024)        
+    break
+try:
+    s.send(chr(1))
+except TypeError:
+    s.send(bytes(chr(1), "utf-8"))
+s.close()
+f.close()
+print("El archivo ha sido enviado correctamente.")
