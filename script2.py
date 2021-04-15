@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+#Chávez Morones Angel Uriel  2CV16  ESCOM
 import netifaces
 import socket
 import os
@@ -12,9 +13,8 @@ def ip_valida(ip):
         return False
 def ip_activa(ip):
     if(ip_valida(ip)== True):
-        p = subprocess.Popen(['ping', '-n', '2', '-w', '2', ip])
-        p.wait()
-        return 1 if p.poll()==0 else 0
+        os.system("ping -c1 "+ip)
+        return 1 
     else:
         return 0
 def obtenerClaseIP(ip):
@@ -42,6 +42,8 @@ masc_func = []
 ip_nofunc = []
 masc_nofunc = []
 i=0
+interfaces = netifaces.interfaces()
+print ("Interfaces: ", interfaces)
 for iface in netifaces.interfaces():
     if iface == 'lo' or iface.startswith('vbox'):
         continue
@@ -59,7 +61,7 @@ for iface in netifaces.interfaces():
                         print("IP no activa", direccion_ip)
                         ip_nofunc+= str(direccion_ip)
                         masc_nofunc += aproximarMascara(obtenerClaseIP(direccion_ip))
-file = open("creado.txt", "w")
+file = open("Direcciones.txt", "w")
 file.write("Ip: " + str(ip_func ) + os.linesep)
 file.write("Mascaras:" + str(masc_func) + os.linesep)
 file.write("Ip no activa:" + str(ip_nofunc) + os.linesep)
@@ -68,7 +70,7 @@ file.close()
 #Haciendo el archivo tar
 
 with tarfile.open('Direcciones.tar', mode='w') as out:
-    out.add('creado.txt')
+    out.add('Direcciones.txt')
 print("Enviando el archivo")
 from socket import socket
 s = socket()
